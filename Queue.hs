@@ -30,11 +30,24 @@ import Test.QuickCheck
 -}
 
 -- replace these definitions with something more appropriate
-data Q = Q
+data Q a 
+  = Queue {
+    inQ :: [a],
+    outQ :: [a]
+  }
+  deriving (Eq, Show, Foldable)
 
-empty :: Q
-enq :: Q
-deq :: Q
+empty :: Q a
+empty = Queue [] []
+
+enq :: Q a -> a -> Q a
+enq (Queue l1 l2) x = Queue (x : l1) l2
+
+deq :: Q a -> (Maybe a, Q a)
+deq (Queue [] []) = (Nothing, empty)
+deq (Queue l1 []) = deq $ Queue [] (reverse l1)
+deq (Queue l1 (x : xs)) = (Just x, Queue l1 xs)
+
 {-
 2. Now define some properties that your queue should satisfy. (Note: you may want
 to add additional operations to your queue interface to help with stating
@@ -44,12 +57,6 @@ these properties.)
 {-
 3. Implement your interface. Hint: the simplest implementation uses a single list. However, you can define a more efficient version using two lists.
 -}
-
-empty = undefined
-
-enq = undefined
-
-deq = undefined
 
 {-
 4. Make an `Arbitrary` instance, including definitions for both `arbitrary` and `shrink`

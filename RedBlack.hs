@@ -168,6 +168,10 @@ tree. The others violate the invariants above in some way.
 
 good1 :: RBT Int
 good1 = Root $ N B (N B E 1 E) 2 (N B E 3 E)
+{-
+              2(B)
+            1(B) 3(B)  
+-}
 
 {-
 Here is one with a red Root (violates invariant 2).
@@ -188,7 +192,13 @@ Now define a red-black tree that violates invariant 4.
 -}
 
 bad3 :: RBT Int
-bad3 = undefined
+bad3 = Root $ N B (N R (N R E 0 E) 1 E) 2 (N R E 3 E)
+
+{-
+              2(B)
+            1(R) 3(R)  
+          0(R)
+-}
 
 {-
 Now define a red-black tree that isn't a binary search tree (i.e. the *values*
@@ -196,7 +206,7 @@ stored in the tree are not in strictly increasing order).
 -}
 
 bad4 :: RBT Int
-bad4 = undefined
+bad4 = Root $ N B (N R E 2 E) 1 ( N R E 3 E)
 
 {-
 All sample trees, plus the empty tree for good measure.
@@ -272,7 +282,22 @@ isRootBlack (Root t) = color t == B
 -}
 
 consistentBlackHeight :: RBT a -> Bool
-consistentBlackHeight = undefined
+consistentBlackHeight (Root t) = aux t 0 (blackHeight t) 
+  where 
+    aux :: T a -> Int -> Int -> Bool
+    aux E cnt height = cnt + 1 == height -- current E contributes one count of height
+    aux (N c l _ r) cnt height = do 
+      let b = (if c == B then 1 else 0) in 
+        aux l (cnt + b) height && aux r (cnt + b) height
+
+getTree :: RBT a -> T a 
+getTree (Root t) = t
+
+-- >>> consistentBlackHeight good1
+-- True
+
+-- >>> consistentBlackHeight bad2
+-- False
 
 {-
 4. All children of red nodes are black.
